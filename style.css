@@ -35,8 +35,15 @@ body{
     background-color: rgb(202, 201, 201);
 }
 
-button{
-   flex: 1 0 auto;
+.line6{
+    width: 500px;
+    display: flex;
+    flex: 1 0 auto;
+    justify-content: center;
+}
+
+button, .line6 > button{
+   flex: 0 0 auto;
    height: 50px;
    width: 50px;
    margin: 5px;
