@@ -11,21 +11,10 @@ function mul(nb1, nb2){
 }
 
 function divide(nb1, nb2){
-    return nb1 / nb2;
-}
-
-function operate(nb1, nb2, op){
-    switch (op){
-        case "+":
-            return add(nb1, nb2);
-        case "-":
-            return sub(nb1, nb2);
-        case "X":
-            return mul(nb1, nb2);
-        case "/":
-            return divide(nb1, nb2);
+    if (nb2 === 0){
+        return "Error"
     }
-
+    return nb1 / nb2;
 }
 
 function clear() {
@@ -33,40 +22,91 @@ function clear() {
      output.textContent ="";
 }
 
-function main(){
+function evaluateExpression(tokens) {
+    // Handle mul and divide
+    let i = 0;
+    while (i < tokens.length) {
+        if (tokens[i] === "X" || tokens[i] === "/") {
+            const op = tokens[i];
+            const left = parseFloat(tokens[i - 1]);
+            const right = parseFloat(tokens[i + 1]);
+            const result = op === "X" ? mul(left, right) : divide(left, right);
+            tokens.splice(i - 1, 3, result.toString());
+            i = 0; // repeat
+        } else {
+            i++;
+        }
+    }
+
+    // Handle add and sub
+    i = 0;
+    while (i < tokens.length) {
+        if (tokens[i] === "+" || tokens[i] === "-") {
+            const op = tokens[i];
+            const left = parseFloat(tokens[i - 1]);
+            const right = parseFloat(tokens[i + 1]);
+            const result = op === "+" ? add(left, right) : sub(left, right);
+            tokens.splice(i - 1, 3, result.toString());
+            i = 0;
+        } else {
+            i++;
+        }
+    }
+
+    return tokens[0];
+}
+
+let expression = [];
+let currentNumber = "";
+
+
+function main() {
     const buttons = document.querySelectorAll('button');
-    const output = document.querySelector('.line1')
+    const output = document.querySelector('.line1');
     const operators = ["+", "-", "X", "/"];
-    let values = {nb1: "", nb2: ""}
-    let operator;
-    let current = values.nb1;
+    let lastchar;
 
     buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const text = button.textContent;
 
-        if (button.textContent === "Clear"){
-            button.addEventListener('click', () =>{
+            if (operators.includes(text)) {
+                if (currentNumber !== "") {
+                    expression.push(currentNumber);
+                    currentNumber = "";
+                }
+                expression.push(text);
+                output.textContent += ` ${text} `;
+                return;
+            }
+
+            if (text === "=") {
+                if (currentNumber !== "") {
+                    expression.push(currentNumber);
+                }
+                const result = evaluateExpression(expression);
+                output.textContent = ` ${result} `
+                expression = [];
+                currentNumber = result; // allow to use the previous answer to continue
+                return;
+            }
+
+            if (text === "Clear") {
                 clear();
-        })}
-        else if(operators.includes(button.textContent)){
-            button.addEventListener('click', () =>{
-                operator = button.textContent;
-                current = values.nb2;
-                output.textContent += ` ${operator} `
-        })}
-        else if(button.textContent === "="){
-            button.addEventListener('click', () =>{
-                let answer = operate(values.nb1, values.nb2, operator);
-                output.textContent += ` = ${answer}`
-        })}
+                expression = [];
+                currentNumber = "";
+                return;
+            }
 
-        else{
-            button.addEventListener('click', () =>{
-                output.textContent += `${button.textContent}`
-        })}
+        // if it's a number
+        currentNumber += text;
+        output.textContent += text;
 
-    })
+
+        });
+    });
 }
+
 
 main()
 
-console.log(operate(2, 3, mul))
